@@ -48,13 +48,13 @@ export function LoginPage({ onLogin }: LoginPageProps) {
         />
       </div>
 
-      <div className="absolute bottom-20 right-20 w-32 h-32 opacity-15">
+    {/* <div className="absolute bottom-20 right-20 w-32 h-32 opacity-15">
         <ImageWithFallback
           src="https://images.unsplash.com/photo-1684852199079-7e50925d94d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXBhbmVzZSUyMGJhbWJvbyUyMHplbnxlbnwxfHx8fDE3NTg3Mzg1MjZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
           alt="Bamboo decoration"
           className="w-full h-full object-cover rounded-full"
         />
-      </div>
+      </div>*/} 
 
       {/* Floating Cherry Blossoms */}
       <motion.div 
@@ -126,10 +126,10 @@ export function LoginPage({ onLogin }: LoginPageProps) {
               🌸
             </motion.div>
             <h1 className="text-3xl mb-2 text-gray-800">
-              和ノート (Wa Notes)
+             私たちのメモ
             </h1>
             <p className="text-gray-600">
-              Welcome back to your mindful notes
+              Welcome Strawberry
             </p>
           </div>
 
@@ -182,8 +182,8 @@ export function LoginPage({ onLogin }: LoginPageProps) {
 
             {/* Demo Note */}
             <div className="text-xs text-center text-gray-500 bg-pink-50 p-3 rounded-lg border border-pink-100">
-              <p className="mb-1">🌸 Demo Mode - Use any email and password</p>
-              <p>Experience the beauty of Japanese note-taking</p>
+              <p className="mb-1">🌸  Use email and password</p>
+              <p>Made for Strawberry Owl and Orange Kitten</p>
             </div>
 
             {/* Login Button */}
@@ -210,7 +210,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           {/* Footer */}
           <div className="mt-8 text-center">
             <p className="text-xs text-gray-500">
-              "The way of notes leads to mindful thoughts" - 道は心に通ず
+              "Share and write your heart out!"
             </p>
           </div>
         </Card>

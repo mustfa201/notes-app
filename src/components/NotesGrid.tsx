@@ -1,76 +1,93 @@
-import { useEffect, useState } from "react";
-import { NoteCard } from "./NoteCard";
-import { AddNoteDialog } from "./AddNoteDialog";
-import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { Plus, Search } from "lucide-react";
+"use client"
 
-import { createNote, subscribeToNotes, updateNote, deleteNoteById } from "../lib/notes";
-import { auth } from "../lib/firebase";
+import { useEffect, useState } from "react"
+import { NoteCard } from "./NoteCard"
+import { AddNoteDialog } from "./AddNoteDialog"
+import { EditNoteDialog } from "./EditNoteDialog"
+import ViewNoteDialog from "./ViewNoteDialog"
+import { Button } from "./ui/button"
+import { Input } from "./ui/input"
+import { Plus, Search } from "lucide-react"
+
+import {
+  createNote,
+  subscribeToNotes,
+  updateNote,
+  deleteNoteById,
+} from "../lib/notes"
+import { auth } from "../lib/firebase"
 
 export interface Note {
-  id: string;
-  title: string;
-  content: string;
-  createdAt: any; // Firestore Timestamp
-  color: string;
-  ownerEmail: string;
-  createdBy: string;
+  id: string
+  title: string
+  content: string
+  createdAt: any // Firestore Timestamp
+  color: string
+  ownerEmail: string
+  createdBy: string
 }
 
-export function NotesGrid() {
-  const [notes, setNotes] = useState<Note[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+function NotesGrid() {
+  const [notes, setNotes] = useState<Note[]>([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [editingNote, setEditingNote] = useState<Note | null>(null)
+  const [viewingNote, setViewingNote] = useState<Note | null>(null)
 
   // 🔹 Subscribe to Firestore notes
   useEffect(() => {
     const unsubscribe = subscribeToNotes((fetchedNotes) => {
-      setNotes(fetchedNotes as Note[]);
-    });
-    return () => unsubscribe();
-  }, []);
+      setNotes(fetchedNotes as Note[])
+    })
+    return () => unsubscribe()
+  }, [])
 
   // 🔹 Add note
   const addNote = async (title: string, content: string, color: string) => {
-    const user = auth.currentUser;
-    if (!user) {
-      alert("You must be logged in to add notes");
-      return;
-    }
-
+    const user = auth.currentUser
+    if (!user) return alert("You must be logged in to add notes")
     await createNote({
       ownerEmail: user.email!,
       title,
       content,
       color,
-    });
-  };
+    })
+  }
 
   // 🔹 Update note
-  const updateNoteHandler = async (id: string, title: string, content: string) => {
-    await updateNote(id, { title, content });
-  };
+  const updateNoteHandler = async (
+    id: string,
+    title: string,
+    content: string,
+    color?: string
+  ) => {
+    try {
+      await updateNote(id, { title, content, color })
+      setEditingNote(null)
+    } catch (err) {
+      console.error("Error updating note:", err)
+    }
+  }
 
   // 🔹 Delete note
   const deleteNoteHandler = async (id: string) => {
-    await deleteNoteById(id);
-  };
+    await deleteNoteById(id)
+  }
 
   // 🔹 Search filter
   const filteredNotes = notes.filter(
     (note) =>
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.content.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  )
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-4xl mb-2 text-gray-800">🌸 和ノート (Wa Notes)</h1>
+      {/* Header (Sticky) */}
+      <div className="mb-8 sticky top-0 bg-white/80 backdrop-blur z-10 py-4">
+        <h1 className="text-4xl mb-2 text-gray-800">🌸私たちのメモ</h1>
         <p className="text-gray-600 mb-6">
-          Share your thoughts with Japanese elegance and mindfulness
+          I Love You So Much !!
         </p>
 
         {/* Search + Add */}
@@ -102,17 +119,19 @@ export function NotesGrid() {
             note={note}
             onUpdate={updateNoteHandler}
             onDelete={deleteNoteHandler}
+            onEdit={() => setEditingNote(note)}
+            onView={() => setViewingNote(note)}
           />
         ))}
       </div>
 
+      {/* Empty States */}
       {filteredNotes.length === 0 && searchQuery && (
         <div className="text-center py-16 text-gray-500">
           <div className="text-6xl mb-4">🔍</div>
           <p>No notes found matching "{searchQuery}"</p>
         </div>
       )}
-
       {notes.length === 0 && !searchQuery && (
         <div className="text-center py-16 text-gray-500">
           <div className="text-6xl mb-4">🌸</div>
@@ -127,6 +146,27 @@ export function NotesGrid() {
         onAdd={addNote}
         currentUser={auth.currentUser?.email || null}
       />
+
+      {/* Edit Note Dialog */}
+      {editingNote && (
+        <EditNoteDialog
+          isOpen={!!editingNote}
+          onClose={() => setEditingNote(null)}
+          note={editingNote}
+          onUpdate={updateNoteHandler}
+        />
+      )}
+
+      {/* View Note Dialog */}
+      {viewingNote && (
+        <ViewNoteDialog
+          isOpen={!!viewingNote}
+          onClose={() => setViewingNote(null)}
+          note={viewingNote}
+        />
+      )}
     </div>
-  );
+  )
 }
+
+export default NotesGrid

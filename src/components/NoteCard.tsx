@@ -1,8 +1,10 @@
-import { useState } from "react";
-import { Note } from "./NotesGrid";
-import { Card } from "./ui/card";
-import { Button } from "./ui/button";
-import EditNoteDialog from "./EditNoteDialog";
+"use client"
+
+import { useState } from "react"
+import type { Note } from "./NotesGrid"
+import { Card } from "./ui/card"
+import { Button } from "./ui/button"
+import { EditNoteDialog } from "./EditNoteDialog"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,69 +15,41 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "./ui/alert-dialog";
-import { Edit, Trash2, Calendar } from "lucide-react";
-import { motion } from "motion/react";
+} from "./ui/alert-dialog"
+import { Edit, Trash2, Calendar } from "lucide-react"
+import { motion } from "motion/react"
 
-// 🎨 Helper: fallback colors
-const getDefaultColorForEmail = (email?: string | null) => {
-  if (!email) return "from-gray-100 to-gray-200";
-  const e = email.toLowerCase();
-  if (e === "mustafa.tahir12@gmail.com")
-    return "from-orange-200 via-orange-100 to-white"; // orangish
-  if (e === "amnaarif1090@gmail.com")
-    return "from-pink-200 via-pink-100 to-white"; // pinkish
-  return "from-gray-100 to-gray-200";
-};
-
-// 👤 Helper: map email → display name
-const getDisplayName = (email?: string | null) => {
-  if (!email) return "Unknown";
-  const e = email.toLowerCase();
-  if (e === "mustafa.tahir12@gmail.com") return "Mustafa";
-  if (e === "amnaarif1090@gmail.com") return "Amna";
-  return email.split("@")[0]; // fallback to before @
-};
+// 🔹 Map emails to display names
+const userNameMap: Record<string, string> = {
+  "mustafa.tahir12@gmail.com": "Mustafa",
+  "amnaarif1090@gmail.com": "Amna",
+}
 
 interface NoteCardProps {
-  note: Note;
-  onUpdate: (id: string, title: string, content: string) => void;
-  onDelete: (id: string) => void;
+  note: Note
+  onUpdate: (id: string, title: string, content: string) => void
+  onDelete: (id: string) => void
 }
 
 export function NoteCard({ note, onUpdate, onDelete }: NoteCardProps) {
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
 
-  // Decide background
-  const bgGradient = note.color
-    ? note.color
-    : getDefaultColorForEmail(note.ownerEmail);
-
-  // ✅ Fix: handle Firestore Timestamps safely
   const formatDate = (date: any) => {
-    if (!date) return "—";
-
-    let jsDate: Date;
+    if (!date) return "—"
+    let jsDate: Date
     if (date.toDate) {
-      jsDate = date.toDate(); // Firestore Timestamp
+      jsDate = date.toDate()
     } else if (date instanceof Date) {
-      jsDate = date;
+      jsDate = date
     } else {
-      return "—";
+      return "—"
     }
-
     return jsDate.toLocaleDateString("ja-JP", {
       year: "numeric",
       month: "long",
       day: "numeric",
-    });
-  };
-
-  const truncateContent = (content: string, maxLength: number = 150) => {
-    if (!content) return "";
-    if (content.length <= maxLength) return content;
-    return content.substring(0, maxLength) + "...";
-  };
+    })
+  }
 
   return (
     <motion.div
@@ -86,7 +60,8 @@ export function NoteCard({ note, onUpdate, onDelete }: NoteCardProps) {
       transition={{ duration: 0.2 }}
     >
       <Card
-        className={`group p-6 h-full bg-gradient-to-br ${bgGradient} border-0 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm`}
+        className={`group relative p-6 h-full bg-gradient-to-br ${note.color} border-0 shadow-lg hover:shadow-xl transition-all duration-300 backdrop-blur-sm cursor-pointer`}
+        onClick={() => setIsEditDialogOpen(true)}
       >
         <div className="flex flex-col h-full">
           {/* Header */}
@@ -98,7 +73,10 @@ export function NoteCard({ note, onUpdate, onDelete }: NoteCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setIsEditDialogOpen(true)}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setIsEditDialogOpen(true)
+                }}
                 className="p-2 h-8 w-8 hover:bg-white/50 text-gray-600 hover:text-gray-800"
               >
                 <Edit className="w-4 h-4" />
@@ -108,6 +86,7 @@ export function NoteCard({ note, onUpdate, onDelete }: NoteCardProps) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    onClick={(e) => e.stopPropagation()}
                     className="p-2 h-8 w-8 hover:bg-red-100 text-gray-600 hover:text-red-600"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -117,8 +96,8 @@ export function NoteCard({ note, onUpdate, onDelete }: NoteCardProps) {
                   <AlertDialogHeader>
                     <AlertDialogTitle>Delete Note</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to delete "{note.title}"? This action
-                      cannot be undone.
+                      Are you sure you want to delete "{note.title}"? This
+                      action cannot be undone.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -139,20 +118,30 @@ export function NoteCard({ note, onUpdate, onDelete }: NoteCardProps) {
 
           {/* Content */}
           <div className="flex-1 mb-4">
-            <p className="text-gray-700 text-sm leading-relaxed">
-              {truncateContent(note.content)}
-            </p>
+            <div className="text-gray-700 text-sm leading-relaxed space-y-2">
+              {note.content
+                .split("\n")
+                .slice(0, 3)
+                .map((paragraph, index) => (
+                  <p key={index} className="line-clamp-1">
+                    {paragraph || ""}
+                  </p>
+                ))}
+              {note.content.split("\n").length > 3 && (
+                <p className="text-gray-500 italic">...</p>
+              )}
+            </div>
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between text-xs text-gray-600 border-t border-white/30 pt-3">
+          <div className="flex justify-between items-center text-xs text-gray-600 border-t border-white/30 pt-3">
             <div className="flex items-center">
               <Calendar className="w-3 h-3 mr-1" />
               {formatDate(note.createdAt)}
             </div>
-            <div className="italic text-gray-500">
-              Written by {getDisplayName(note.ownerEmail)}
-            </div>
+            <span className="italic">
+              Written by {userNameMap[note.ownerEmail] || note.ownerEmail}
+            </span>
           </div>
         </div>
 
@@ -167,5 +156,5 @@ export function NoteCard({ note, onUpdate, onDelete }: NoteCardProps) {
         onUpdate={onUpdate}
       />
     </motion.div>
-  );
+  )
 }

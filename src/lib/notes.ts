@@ -1,4 +1,4 @@
-import { db, auth } from "./firebase";
+import { db, auth } from "./firebase"
 import {
   collection,
   addDoc,
@@ -9,39 +9,63 @@ import {
   onSnapshot,
   query,
   orderBy,
-} from "firebase/firestore";
+} from "firebase/firestore"
+import { Note } from "../components/NotesGrid"
 
-export async function createNote({ ownerEmail, title, content, color }: any) {
-  const user = auth.currentUser;
-  if (!user) throw new Error("Not authenticated");
+// 🔹 Create a new note
+export async function createNote({
+  ownerEmail,
+  title,
+  content,
+  color,
+}: {
+  ownerEmail: string
+  title: string
+  content: string
+  color: string
+}) {
+  const user = auth.currentUser
+  if (!user) throw new Error("Not authenticated")
 
   await addDoc(collection(db, "notes"), {
     ownerEmail,
-    createdBy: user.uid, // required by rules
+    createdBy: user.uid,
     title,
     content,
     color,
     createdAt: serverTimestamp(),
-  });
+  })
 }
 
-export async function updateNote(id: string, data: any) {
-  const noteRef = doc(db, "notes", id);
-  await updateDoc(noteRef, data);
+// 🔹 Update a note by ID
+export async function updateNote(
+  id: string,
+  data: Partial<Pick<Note, "title" | "content" | "color">>
+) {
+  const noteRef = doc(db, "notes", id)
+  await updateDoc(noteRef, data)
 }
 
+// 🔹 Delete a note by ID
 export async function deleteNoteById(id: string) {
-  const noteRef = doc(db, "notes", id);
-  await deleteDoc(noteRef);
+  const noteRef = doc(db, "notes", id)
+  await deleteDoc(noteRef)
 }
 
-export function subscribeToNotes(cb: (notes: any[]) => void) {
-  const q = query(collection(db, "notes"), orderBy("createdAt", "desc"));
+// 🔹 Subscribe to real-time notes (sorted by createdAt)
+export function subscribeToNotes(cb: (notes: Note[]) => void) {
+  const q = query(collection(db, "notes"), orderBy("createdAt", "desc"))
   return onSnapshot(q, (snapshot) => {
-    const notes = snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...docSnap.data(),
-    }));
-    cb(notes);
-  });
+    const notes = snapshot.docs.map((docSnap) => {
+      const data = docSnap.data()
+      return {
+        id: docSnap.id,
+        ...data,
+        createdAt: data.createdAt?.toDate
+          ? data.createdAt.toDate()
+          : new Date(),
+      } as Note
+    })
+    cb(notes)
+  })
 }

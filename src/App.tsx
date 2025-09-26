@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { NotesGrid } from "./components/NotesGrid";
+import NotesGrid   from "./components/NotesGrid";
 import { LoginPage } from "./components/LoginPage";
 import { ImageWithFallback } from "./components/figma/ImageWithFallback";
 import { Button } from "./components/ui/button";
 import { LogOut } from "lucide-react";
+import "./styles/scrollbar.css";
 
 // Firebase
 import { auth } from "./lib/firebase";
@@ -70,14 +71,14 @@ export default function App() {
       </div>
 
       {/* Decorative Elements */}
-      <div className="absolute top-20 right-20 w-32 h-32 opacity-10">
+     {/* <div className="absolute top-20 right-20 w-32 h-32 opacity-10">
         <ImageWithFallback
           src="https://images.unsplash.com/photo-1684852199079-7e50925d94d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxqYXBhbmVzZSUyMGJhbWJvbyUyMHplbnxlbnwxfHx8fDE3NTg3Mzg1MjZ8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral"
           alt="Bamboo decoration"
           className="w-full h-full object-cover rounded-full"
         />
       </div>
-
+          */}
       {/* Floating Cherry Blossoms */}
       <div
         className="absolute top-10 left-20 text-4xl opacity-20 animate-bounce"
